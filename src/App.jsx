@@ -11,21 +11,30 @@ const GAME_STATE = {
   FINISHED: 'FINISHED',
 };
 
+// Box-Muller 변환으로 표준정규분포(평균 0, 표준편차 1) 난수 생성
+const gaussianRandom = () => {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random(); // 0 방지 (log(0) 예외)
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+};
+
 // 결정론적 기본 체력맵(base)에 매 판 랜덤 지터를 적용해 새 체력맵을 반환한다.
-// 수동 튜닝값을 '기대값'으로 유지하되 판마다 변주를 줘 '늘 같은 지역이 이기는'
-// 결정론 문제를 완화한다. 체력이 큰 구역일수록 흔들림 폭(±10%)도 크게 두고,
-// 저체력 구역이 지터로 즉사(0 이하)하지 않도록 최소 1을 보장한다.
+// 지터는 중간 티어(녹색 HP 4 ~ 파란색 HP 5)에만 적용한다:
+// 강원도(춘천 등)처럼 면적·접점 위상으로 단단하게 튜닝한 상위 티어(보라/흰색/제주)와
+// 의도적으로 약하게 눌러둔 위성도시(HP 1~3)는 건드리지 않아 밸런스 의도를 보존한다.
+// 중립 지대인 HP 4~5 구역에만 소폭(σ≈1) 변주를 줘 리플레이 다양성을 확보하되,
+// 결과를 HP 3~6 밴드로 clamp해 상·하위 티어(색상/의도 체계)로 새지 않게 한다.
 const rollHpMap = (baseMap) => {
   const rolled = {};
   Object.keys(baseMap).forEach(id => {
     const baseHp = baseMap[id];
-    if (baseHp <= 0) {
+    if (baseHp !== 4 && baseHp !== 5) {
       rolled[id] = baseHp;
       return;
     }
-    const magnitude = Math.max(1, Math.round(baseHp * 0.1));
-    const jitter = Math.round((Math.random() * 2 - 1) * magnitude); // -magnitude ~ +magnitude
-    rolled[id] = Math.max(1, baseHp + jitter);
+    const jitter = Math.round(gaussianRandom() * 1); // σ≈1, 대부분 -2 ~ +2
+    rolled[id] = Math.min(6, Math.max(3, baseHp + jitter));
   });
   return rolled;
 };
