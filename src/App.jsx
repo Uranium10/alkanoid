@@ -54,7 +54,7 @@ const applyGlobalNerf = (hpMap) => {
   const nerfed = {};
   Object.keys(hpMap).forEach(id => {
     if (hpMap[id] >= 5)
-      nerfed[id] = Math.max(3, Math.round(hpMap[id] * 0.9));
+      nerfed[id] = Math.max(3, Math.round(hpMap[id] * 0.6));
     else
       nerfed[id] = hpMap[id];
   });
@@ -167,7 +167,7 @@ function App() {
     let globalAnyHit = false;
     let globalNewDeadBoxes = [];
     let shouldFinish = false;
-    
+
     const iters = isFastForwardRef.current ? 2 : 1;
     for (let iter = 0; iter < iters; iter++) {
       let anyHit = false;
@@ -177,137 +177,137 @@ function App() {
 
       let aliveCount = Object.values(hpMapRef.current).filter(hp => hp > 0).length;
 
-    const dealDamage = (id) => {
-      if (hpMapRef.current[id] <= 0) return;
-      if (aliveCount <= 1) return; // 최후의 1구역은 '플롯 아머(무적)' 판정!
+      const dealDamage = (id) => {
+        if (hpMapRef.current[id] <= 0) return;
+        if (aliveCount <= 1) return; // 최후의 1구역은 '플롯 아머(무적)' 판정!
 
-      hpMapRef.current[id] -= 1;
-      anyHit = true;
-      if (hpMapRef.current[id] === 0) {
-        aliveCount -= 1;
-        explodedQueue.push(id);
-        shakeTrigger = true;
-        const box = boxesRef.current.find(b => b.id === id);
-        if (box) {
-          newDeadBoxes.push(`💥 ${box.name} 탈락!`);
+        hpMapRef.current[id] -= 1;
+        anyHit = true;
+        if (hpMapRef.current[id] === 0) {
+          aliveCount -= 1;
+          explodedQueue.push(id);
+          shakeTrigger = true;
+          const box = boxesRef.current.find(b => b.id === id);
+          if (box) {
+            newDeadBoxes.push(`💥 ${box.name} 탈락!`);
 
-          destroyedCountRef.current += 1;
-          if (destroyedCountRef.current % 5 === 0) {
-            const angle = Math.random() * Math.PI * 2;
-            ballsRef.current.push({
-              x: box.x + box.width / 2,
-              y: box.y + box.height / 2,
-              vx: initialSpeed * Math.cos(angle),
-              vy: initialSpeed * Math.sin(angle),
-              radius: ballRadius,
-              active: true
-            });
-            const textId = Date.now() + Math.random();
-            setFloatingTexts(prev => [...prev, { id: textId, x: box.x + box.width / 2, y: box.y + box.height / 2 }]);
-            setTimeout(() => {
-              setFloatingTexts(prev => prev.filter(ft => ft.id !== textId));
-            }, 1000);
+            destroyedCountRef.current += 1;
+            if (destroyedCountRef.current % 5 === 0) {
+              const angle = Math.random() * Math.PI * 2;
+              ballsRef.current.push({
+                x: box.x + box.width / 2,
+                y: box.y + box.height / 2,
+                vx: initialSpeed * Math.cos(angle),
+                vy: initialSpeed * Math.sin(angle),
+                radius: ballRadius,
+                active: true
+              });
+              const textId = Date.now() + Math.random();
+              setFloatingTexts(prev => [...prev, { id: textId, x: box.x + box.width / 2, y: box.y + box.height / 2 }]);
+              setTimeout(() => {
+                setFloatingTexts(prev => prev.filter(ft => ft.id !== textId));
+              }, 1000);
+            }
           }
         }
-      }
-    };
+      };
 
-    ballsRef.current.forEach((ball, i) => {
-      if (!ball.active) return;
+      ballsRef.current.forEach((ball, i) => {
+        if (!ball.active) return;
 
-      let { x, y, vx, vy, radius } = ball;
-      let newX = x + vx;
-      let newY = y + vy;
+        let { x, y, vx, vy, radius } = ball;
+        let newX = x + vx;
+        let newY = y + vy;
 
-      if (newX - radius < 0) {
-        newX = radius;
-        vx = Math.abs(vx);
-      } else if (newX + radius > boardWidth) {
-        newX = boardWidth - radius;
-        vx = -Math.abs(vx);
-      }
-      if (newY - radius < 0) {
-        newY = radius;
-        vy = Math.abs(vy);
-      } else if (newY + radius > boardHeight) {
-        newY = boardHeight - radius;
-        vy = -Math.abs(vy);
-      }
+        if (newX - radius < 0) {
+          newX = radius;
+          vx = Math.abs(vx);
+        } else if (newX + radius > boardWidth) {
+          newX = boardWidth - radius;
+          vx = -Math.abs(vx);
+        }
+        if (newY - radius < 0) {
+          newY = radius;
+          vy = Math.abs(vy);
+        } else if (newY + radius > boardHeight) {
+          newY = boardHeight - radius;
+          vy = -Math.abs(vy);
+        }
 
-      let hitX = false;
-      let hitY = false;
-      let hitBoxId = null;
+        let hitX = false;
+        let hitY = false;
+        let hitBoxId = null;
 
-      const blockX = checkHit(newX, y, radius);
-      if (blockX) {
-        vx = -vx;
-        hitX = true;
-        hitBoxId = blockX.id;
-        newX = x + vx;
-      }
-
-      const blockY = checkHit(x, newY, radius);
-      if (blockY) {
-        vy = -vy;
-        hitY = true;
-        if (!hitBoxId) hitBoxId = blockY.id;
-        newY = y + vy;
-      }
-
-      if (!hitX && !hitY) {
-        const blockXY = checkHit(newX, newY, radius);
-        if (blockXY) {
+        const blockX = checkHit(newX, y, radius);
+        if (blockX) {
           vx = -vx;
-          vy = -vy;
-          hitBoxId = blockXY.id;
+          hitX = true;
+          hitBoxId = blockX.id;
           newX = x + vx;
+        }
+
+        const blockY = checkHit(x, newY, radius);
+        if (blockY) {
+          vy = -vy;
+          hitY = true;
+          if (!hitBoxId) hitBoxId = blockY.id;
           newY = y + vy;
         }
-      }
 
-      if (hitBoxId) {
-        dealDamage(hitBoxId);
-      }
-
-      ball.x = newX;
-      ball.y = newY;
-      ball.vx = vx;
-      ball.vy = vy;
-
-      if (ballDOMRefs.current[i]) {
-        ballDOMRefs.current[i].style.transform = `translate(${newX - radius}px, ${newY - radius}px)`;
-      }
-    });
-
-    if (explodedQueue.length > 0) {
-      let head = 0;
-      while (head < explodedQueue.length) {
-        const expId = explodedQueue[head++];
-        const expBox = boxesRef.current.find(b => b.id === expId);
-        if (!expBox) continue;
-
-        if (particleRef.current) {
-          particleRef.current.spawnSparks(expBox.x + expBox.width / 2, expBox.y + expBox.height / 2);
+        if (!hitX && !hitY) {
+          const blockXY = checkHit(newX, newY, radius);
+          if (blockXY) {
+            vx = -vx;
+            vy = -vy;
+            hitBoxId = blockXY.id;
+            newX = x + vx;
+            newY = y + vy;
+          }
         }
 
-        const neighbors = adjacencyData[expId] || [];
-        for (let targetId of neighbors) {
-          if (hpMapRef.current[targetId] > 0) {
-            const wasAlive = hpMapRef.current[targetId] > 0;
-            dealDamage(targetId);
+        if (hitBoxId) {
+          dealDamage(hitBoxId);
+        }
 
-            if (wasAlive && hpMapRef.current[targetId] === 0 && particleRef.current) {
-              const targetBox = boxesRef.current.find(b => b.id === targetId);
-              if (targetBox) {
-                particleRef.current.spawnSparks(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2);
+        ball.x = newX;
+        ball.y = newY;
+        ball.vx = vx;
+        ball.vy = vy;
+
+        if (ballDOMRefs.current[i]) {
+          ballDOMRefs.current[i].style.transform = `translate(${newX - radius}px, ${newY - radius}px)`;
+        }
+      });
+
+      if (explodedQueue.length > 0) {
+        let head = 0;
+        while (head < explodedQueue.length) {
+          const expId = explodedQueue[head++];
+          const expBox = boxesRef.current.find(b => b.id === expId);
+          if (!expBox) continue;
+
+          if (particleRef.current) {
+            particleRef.current.spawnSparks(expBox.x + expBox.width / 2, expBox.y + expBox.height / 2);
+          }
+
+          const neighbors = adjacencyData[expId] || [];
+          for (let targetId of neighbors) {
+            if (hpMapRef.current[targetId] > 0) {
+              const wasAlive = hpMapRef.current[targetId] > 0;
+              dealDamage(targetId);
+
+              if (wasAlive && hpMapRef.current[targetId] === 0 && particleRef.current) {
+                const targetBox = boxesRef.current.find(b => b.id === targetId);
+                if (targetBox) {
+                  particleRef.current.spawnSparks(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2);
+                }
               }
             }
           }
         }
       }
-    }
 
-    if (shakeTrigger) triggerShake();
+      if (shakeTrigger) triggerShake();
 
       globalNewDeadBoxes.push(...newDeadBoxes);
       globalAnyHit = globalAnyHit || anyHit;
