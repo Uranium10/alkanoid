@@ -592,3 +592,51 @@ body {
     font-size: 1.5rem;
   }
 }
+
+.fast-forward-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 28px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+  transition: all 0.2s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 1px;
+}
+
+.fast-forward-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+}
+
+.fast-forward-btn:active {
+  transform: translateY(1px);
+}
+
+.fast-forward-btn.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
+}
+
+.fast-forward-btn.active:hover {
+  box-shadow: 0 12px 30px rgba(220, 38, 38, 0.6);
+}
+
+@media (max-width: 900px) {
+  .fast-forward-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+}

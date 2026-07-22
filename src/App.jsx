@@ -71,6 +71,13 @@ function App() {
   const [boardScale, setBoardScale] = useState(1);
   const [floatingTexts, setFloatingTexts] = useState([]);
   const [showDragText, setShowDragText] = useState(true);
+  const [isFastForward, setIsFastForward] = useState(false);
+  const isFastForwardRef = useRef(false);
+
+  const toggleFastForward = () => {
+    isFastForwardRef.current = !isFastForwardRef.current;
+    setIsFastForward(isFastForwardRef.current);
+  };
 
   const boardWidth = 800;
   const boardHeight = 750;
@@ -157,12 +164,18 @@ function App() {
   };
 
   const updateGame = () => {
-    let anyHit = false;
-    let explodedQueue = [];
-    let shakeTrigger = false;
-    let newDeadBoxes = [];
+    let globalAnyHit = false;
+    let globalNewDeadBoxes = [];
+    let shouldFinish = false;
+    
+    const iters = isFastForwardRef.current ? 2 : 1;
+    for (let iter = 0; iter < iters; iter++) {
+      let anyHit = false;
+      let explodedQueue = [];
+      let shakeTrigger = false;
+      let newDeadBoxes = [];
 
-    let aliveCount = Object.values(hpMapRef.current).filter(hp => hp > 0).length;
+      let aliveCount = Object.values(hpMapRef.current).filter(hp => hp > 0).length;
 
     const dealDamage = (id) => {
       if (hpMapRef.current[id] <= 0) return;
@@ -296,18 +309,27 @@ function App() {
 
     if (shakeTrigger) triggerShake();
 
-    if (newDeadBoxes.length > 0) {
+      globalNewDeadBoxes.push(...newDeadBoxes);
+      globalAnyHit = globalAnyHit || anyHit;
+
+      if (aliveCount === 1) {
+        shouldFinish = true;
+        break;
+      }
+    }
+
+    if (globalNewDeadBoxes.length > 0) {
       setLogs(prev => {
-        const nextLogs = [...newDeadBoxes, ...prev];
+        const nextLogs = [...globalNewDeadBoxes, ...prev];
         return nextLogs.slice(0, 15); // 최신 15개 로그만 유지
       });
     }
 
-    if (anyHit) {
+    if (globalAnyHit) {
       setHpMap({ ...hpMapRef.current });
     }
 
-    if (aliveCount === 1) {
+    if (shouldFinish) {
       const winnerId = Object.keys(hpMapRef.current).find(id => hpMapRef.current[id] > 0);
       const winnerBox = boxesRef.current.find(b => b.id === winnerId);
       if (winnerBox) {
@@ -534,6 +556,8 @@ function App() {
     setGameState(GAME_STATE.READY);
     setLogs([]);
     setFloatingTexts([]);
+    isFastForwardRef.current = false;
+    setIsFastForward(false);
   };
 
   const activeIds = Object.keys(hpMap).filter(id => hpMap[id] > 0);
@@ -693,6 +717,15 @@ function App() {
           <strong>{hoveredRegion.name}</strong>
           <span>내구도: {hpMap[hoveredRegion.id]}</span>
         </div>
+      )}
+
+      {gameState === GAME_STATE.PLAYING && (
+        <button
+          className={`fast-forward-btn ${isFastForward ? 'active' : ''}`}
+          onClick={toggleFastForward}
+        >
+          {isFastForward ? '▶▶ 2X속도' : '▶ 1X속도'}
+        </button>
       )}
     </div>
   );
