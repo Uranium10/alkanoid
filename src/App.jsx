@@ -467,14 +467,14 @@ function App() {
         </div>
 
         <div
-          className="board-scaler"
+          className={`board-scaler ${isShaking ? 'shake' : ''}`}
           style={{
             width: boardWidth * boardScale,
             height: boardHeight * boardScale,
           }}
         >
         <div 
-          className={`board-wrapper ${isShaking ? 'shake' : ''}`}
+          className="board-wrapper"
           ref={boardRef}
           style={{
             width: boardWidth,
