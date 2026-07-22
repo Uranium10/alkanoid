@@ -163,15 +163,15 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
     // 서울, 인천, 부산 체력 고정 및 추가 밸런스 패치 (모든 base 보정 이후 적용)
     boxes.forEach(box => {
       if (box.name.includes('서울특별시')) {
-        initialHpMap[box.id] = 16;
+        initialHpMap[box.id] = 18;
       } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
         initialHpMap[box.id] = 22;
       } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
-        initialHpMap[box.id] += 3;
+        initialHpMap[box.id] += 5;
       }
 
       if (box.name.includes('수원시') || box.name.includes('통영시')) {
-        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 11);
+        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 10);
       }
 
       if (box.name.includes('춘천시')) {
@@ -183,10 +183,10 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       }
 
       if (box.name.includes('울릉군')) {
-        initialHpMap[box.id] = 8;
+        initialHpMap[box.id] = 10;
       }
       if (box.name.includes('통영시')) {
-        initialHpMap[box.id] = 12;
+        initialHpMap[box.id] = 13;
       }
       if (box.name.includes('속초시')) {
         initialHpMap[box.id] = 19;
