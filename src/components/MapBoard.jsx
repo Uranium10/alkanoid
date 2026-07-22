@@ -46,7 +46,7 @@ const LOCAL_ATTRACTION_CITIES = [
 
 // 강원도 특별 버프
 const KANGWON_SPECIAL = [
-  "평창군", "홍천군", "양평군", "정선군", "춘천시", "인제군", "화천군", "강릉시"
+  "평창군", "홍천군", "양평군", "정선군", "춘천시", "인제군", "화천군", "강릉시", "삼척시"
 ];
 
 const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, onRegionClick, width = 800, height = 750 }) => {
@@ -165,7 +165,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       if (box.name.includes('서울특별시')) {
         initialHpMap[box.id] = 19;
       } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
-        initialHpMap[box.id] = 20;
+        initialHpMap[box.id] = 21;
       } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
         initialHpMap[box.id] += 12;
       }
@@ -182,10 +182,15 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       if (box.name.includes('청주시')) {
         initialHpMap[box.id] -= 2;
       }
+      if (box.name.includes('오산시')) {
+        initialHpMap[box.id] -= 1;
+      }
       if (box.name.includes('춘천시')) {
         initialHpMap[box.id] = 24;
       }
-
+      if (box.name.includes('고양시')) {
+        initialHpMap[box.id] += 2;
+      }
       if (box.name.includes('전주시')) {
         initialHpMap[box.id] = 11;
       }

@@ -38,8 +38,13 @@ const gaussianRandom = () => {
 // 결과를 HP 3~6 밴드로 clamp해 상·하위 티어(색상/의도 체계)로 새지 않게 한다.
 const rollHpMap = (baseMap) => {
   const rolled = {};
+  const unbuffedIds = [];
+
   Object.keys(baseMap).forEach(id => {
     const baseHp = baseMap[id];
+    if (baseHp <= 6) {
+      unbuffedIds.push(id);
+    }
     if (baseHp < 4 || baseHp > 18) {
       rolled[id] = baseHp;
       return;
@@ -47,7 +52,20 @@ const rollHpMap = (baseMap) => {
     const jitter = Math.round(gaussianRandom() * 1.5); // σ≈1, 대부분 -2 ~ +2
     rolled[id] = Math.min(18, Math.max(3, baseHp + jitter));
   });
-  return /*rolled;*/ applyGlobalNerf(rolled);
+
+  const nerfed = applyGlobalNerf(rolled);
+
+  // 랜덤한 0~2개의 아무 버프 없는 구역에 최종 내구도 +10 부여
+  const buffCount = Math.floor(Math.random() * 2.5);
+  for (let i = 0; i < buffCount; i++) {
+    if (unbuffedIds.length > 0) {
+      const idx = Math.floor(Math.random() * unbuffedIds.length);
+      const targetId = unbuffedIds.splice(idx, 1)[0];
+      nerfed[targetId] = Math.min(18, nerfed[targetId] + 16);
+    }
+  }
+
+  return nerfed;
 };
 
 const applyGlobalNerf = (hpMap) => {
@@ -571,7 +589,7 @@ function App() {
   return (
     <div className="game-container">
       <div className="game-header">
-        <h1 className="title">국내 여행 알카노이드</h1>
+        <h1 className="title">국내여행 벽돌깨기</h1>
         <p className="subtitle">어디로 떠날지 구슬에게 맡겨보세요!</p>
         <button className="mobile-reset-btn" onClick={resetGame}>다시 뽑기</button>
       </div>
