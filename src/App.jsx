@@ -40,14 +40,25 @@ const rollHpMap = (baseMap) => {
   const rolled = {};
   Object.keys(baseMap).forEach(id => {
     const baseHp = baseMap[id];
-    if (baseHp !== 4 && baseHp !== 5) {
+    if (baseHp < 4 || baseHp > 18) {
       rolled[id] = baseHp;
       return;
     }
     const jitter = Math.round(gaussianRandom() * 1); // σ≈1, 대부분 -2 ~ +2
-    rolled[id] = Math.min(6, Math.max(3, baseHp + jitter));
+    rolled[id] = Math.min(18, Math.max(3, baseHp + jitter));
   });
-  return rolled;
+  return /*rolled;*/ applyGlobalNerf(rolled);
+};
+
+const applyGlobalNerf = (hpMap) => {
+  const nerfed = {};
+  Object.keys(hpMap).forEach(id => {
+    if (hpMap[id] >= 5)
+      nerfed[id] = Math.max(3, Math.round(hpMap[id] * 0.85));
+    else
+      nerfed[id] = hpMap[id];
+  });
+  return nerfed;
 };
 
 function App() {
@@ -65,7 +76,7 @@ function App() {
   const boardHeight = 750;
   const ballRadius = 9;
   const initialSpeed = 15;
-  const numBalls = 10;
+  const numBalls = 20;
 
   const ballsRef = useRef(
     Array.from({ length: numBalls }).map(() => ({
@@ -124,7 +135,7 @@ function App() {
         const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
         if (distanceSquared < (radius * radius)) {
           // 도서지형(섬)이 많아 Bounding Box가 과도하게 큰 해안/도서 지역들은 Pixel-perfect 검증 수행
-          const islandRegions = ['서울특별시', '인천광역시', '신안군', '완도군', '여수시', '통영시', '남해군', '진도군', '제주시', '서귀포시', '부산광역시'];
+          const islandRegions = ['서울특별시', '인천광역시', '신안군', '완도군', '남해군', '진도군', '제주시', '서귀포시', '부산광역시'];
           if (islandRegions.some(name => box.name.includes(name))) {
             if (boardRef.current) {
               const rect = boardRef.current.getBoundingClientRect();
@@ -168,7 +179,7 @@ function App() {
           newDeadBoxes.push(`💥 ${box.name} 탈락!`);
 
           destroyedCountRef.current += 1;
-          if (destroyedCountRef.current % 10 === 0) {
+          if (destroyedCountRef.current % 5 === 0) {
             const angle = Math.random() * Math.PI * 2;
             ballsRef.current.push({
               x: box.x + box.width / 2,

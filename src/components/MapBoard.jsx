@@ -44,12 +44,17 @@ const LOCAL_ATTRACTION_CITIES = [
   "진주시", "합천군", "영주시", "곡성군", "구례군", "포항시", "군산시"
 ];
 
+// 강원도 특별 버프
+const KANGWON_SPECIAL = [
+  "평창군", "홍천군", "양평군", "정선군", "춘천시", "인제군", "화천군", "강릉시"
+];
+
 const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, width = 800, height = 750 }) => {
   const svgRef = useRef(null);
 
   const projection = useMemo(() => {
-    // 북쪽(위쪽)에 150px의 거대한 빈 공간을 남기고 지도를 아래로 꽉 채움
-    return d3.geoMercator().fitExtent([[20, 150], [width - 20, height - 20]], sigunguData);
+    // 북쪽(위쪽) 공간을 105px로 조정하여 지도를 위로 15px 다시 올림
+    return d3.geoMercator().fitExtent([[20, 105], [width - 20, height - 65]], sigunguData);
   }, [width, height, sigunguData]);
 
   const pathGenerator = useMemo(() => d3.geoPath().projection(projection), [projection]);
@@ -87,14 +92,28 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
 
       for (let tourist of TOURIST_CITIES) {
         if (box.name.includes(tourist)) {
-          initialHpMap[box.id] += 10;
+          initialHpMap[box.id] += 16;
+          break;
+        }
+      }
+
+      for (let tourist of COASTAL_AND_BORDER_CITIES) {
+        if (box.name.includes(tourist)) {
+          initialHpMap[box.id] += 4;
           break;
         }
       }
 
       for (let leisure of LEISURE_CITIES) {
         if (box.name.includes(leisure)) {
-          initialHpMap[box.id] += 3;
+          initialHpMap[box.id] += 8;
+          break;
+        }
+      }
+
+      for (let leisure of KANGWON_SPECIAL) {
+        if (box.name.includes(leisure)) {
+          initialHpMap[box.id] += 1;
           break;
         }
       }
@@ -109,14 +128,14 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       // 소소하지만 확실한 특색 있는 명소들이 있는 지역들은 내구도 +1 (초록색 -> 파란색 상향)
       for (let attraction of LOCAL_ATTRACTION_CITIES) {
         if (box.name.includes(attraction)) {
-          initialHpMap[box.id] += 1;
+          initialHpMap[box.id] += 3;
           break;
         }
       }
 
       // 제주는 어나더 레벨로 설정 (+15 추가 부여)
       if (box.name.includes('제주시') || box.name.includes('서귀포시')) {
-        initialHpMap[box.id] += 17;
+        initialHpMap[box.id] += 21;
       }
 
       // 너무 잘 살아남는 도시들은 페널티 대폭 적용 (-3)
@@ -144,20 +163,35 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
     // 서울, 인천, 부산 체력 고정 및 추가 밸런스 패치 (모든 base 보정 이후 적용)
     boxes.forEach(box => {
       if (box.name.includes('서울특별시')) {
-        initialHpMap[box.id] = 18;
+        initialHpMap[box.id] = 16;
       } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
-        initialHpMap[box.id] = 20;
+        initialHpMap[box.id] = 22;
       } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
         initialHpMap[box.id] += 3;
       }
 
       if (box.name.includes('수원시') || box.name.includes('통영시')) {
-        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 3);
+        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 11);
+      }
+
+      if (box.name.includes('춘천시')) {
+        initialHpMap[box.id] = 20;
+      }
+
+      if (box.name.includes('전주시')) {
+        initialHpMap[box.id] = 11;
       }
 
       if (box.name.includes('울릉군')) {
-        initialHpMap[box.id] = 6;
+        initialHpMap[box.id] = 8;
       }
+      if (box.name.includes('통영시')) {
+        initialHpMap[box.id] = 12;
+      }
+      if (box.name.includes('속초시')) {
+        initialHpMap[box.id] = 19;
+      }
+
     });
 
     // 랜덤 지터는 App에서 '다시 뽑기'마다 새로 적용하므로, 여기서는 지터 전
@@ -166,8 +200,8 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
   }, [onLoaded]);
 
   const getColorByHp = (hp) => {
-    if (hp >= 16) return 'url(#jeju-rainbow)';
-    if (hp >= 9) return '#ffffff';
+    if (hp >= 18) return 'url(#jeju-rainbow)';
+    if (hp >= 11) return '#ffffff';
     if (hp >= 6) return '#a855f7';
     if (hp === 5) return '#3b82f6';
     if (hp === 4) return '#22c55e';
@@ -210,7 +244,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
             const hp = hpMap[id] || 0;
             const isActive = hp > 0;
             const isMerged = MERGED_CODES.has(id);
-            const isRainbow = hp >= 16;
+            const isRainbow = hp >= 18;
 
             let fillColor = getColorByHp(hp);
 
