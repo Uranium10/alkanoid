@@ -84,7 +84,10 @@ function App() {
           if (islandRegions.some(name => box.name.includes(name))) {
             if (boardRef.current) {
               const rect = boardRef.current.getBoundingClientRect();
-              const el = document.elementFromPoint(rect.left + cx, rect.top + cy);
+              // 모바일에서는 보드가 transform: scale()로 축소되므로 논리 좌표(cx, cy)를
+              // 화면 좌표로 변환할 때 실제 렌더링 배율을 곱해줘야 한다.
+              const scale = rect.width / boardWidth;
+              const el = document.elementFromPoint(rect.left + cx * scale, rect.top + cy * scale);
               // 공의 중심(cx, cy)이 실제 해당 행정구역의 SVG path 위에 있을 때만 충돌로 인정
               if (!el || el.getAttribute('data-sigungu-id') !== box.id) {
                 continue;
