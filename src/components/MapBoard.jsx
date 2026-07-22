@@ -92,7 +92,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
 
       for (let tourist of TOURIST_CITIES) {
         if (box.name.includes(tourist)) {
-          initialHpMap[box.id] += 16;
+          initialHpMap[box.id] += 14;
           break;
         }
       }
@@ -113,7 +113,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
 
       for (let leisure of KANGWON_SPECIAL) {
         if (box.name.includes(leisure)) {
-          initialHpMap[box.id] += 1;
+          initialHpMap[box.id] += 2;
           break;
         }
       }
@@ -155,7 +155,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       boxes.forEach(box => {
         const area = box.width * box.height;
         if (area >= sangjuArea) {
-          initialHpMap[box.id] += 2;
+          initialHpMap[box.id] += 3;
         }
       });
     }
@@ -165,9 +165,9 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       if (box.name.includes('서울특별시')) {
         initialHpMap[box.id] = 19;
       } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
-        initialHpMap[box.id] = 23;
+        initialHpMap[box.id] = 20;
       } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
-        initialHpMap[box.id] += 7;
+        initialHpMap[box.id] += 12;
       }
 
       if (box.name.includes('수원시') || box.name.includes('통영시')) {
@@ -179,12 +179,15 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       if (box.name.includes('단양군')) {
         initialHpMap[box.id] -= 1;
       }
+      if (box.name.includes('청주시')) {
+        initialHpMap[box.id] -= 2;
+      }
       if (box.name.includes('춘천시')) {
-        initialHpMap[box.id] = 22;
+        initialHpMap[box.id] = 24;
       }
 
       if (box.name.includes('전주시')) {
-        initialHpMap[box.id] = 13;
+        initialHpMap[box.id] = 11;
       }
 
       if (box.name.includes('울릉군')) {
@@ -194,9 +197,11 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
         initialHpMap[box.id] = 13;
       }
       if (box.name.includes('속초시')) {
-        initialHpMap[box.id] = 19;
+        initialHpMap[box.id] = 12;
       }
-
+      if (box.name.includes('용인시')) {
+        initialHpMap[box.id] = 18;
+      }
     });
 
     // 랜덤 지터는 App에서 '다시 뽑기'마다 새로 적용하므로, 여기서는 지터 전

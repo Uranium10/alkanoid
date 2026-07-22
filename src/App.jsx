@@ -44,17 +44,18 @@ const rollHpMap = (baseMap) => {
       rolled[id] = baseHp;
       return;
     }
-    const jitter = Math.round(gaussianRandom() * 1); // σ≈1, 대부분 -2 ~ +2
+    const jitter = Math.round(gaussianRandom() * 1.5); // σ≈1, 대부분 -2 ~ +2
     rolled[id] = Math.min(18, Math.max(3, baseHp + jitter));
   });
   return /*rolled;*/ applyGlobalNerf(rolled);
 };
 
 const applyGlobalNerf = (hpMap) => {
+  const rollAmp = Math.random() * 0.25 + 0.55;
   const nerfed = {};
   Object.keys(hpMap).forEach(id => {
     if (hpMap[id] >= 5)
-      nerfed[id] = Math.max(3, Math.round(hpMap[id] * 0.6));
+      nerfed[id] = Math.max(3, Math.round(hpMap[id] * rollAmp));
     else
       nerfed[id] = hpMap[id];
   });
@@ -142,7 +143,7 @@ function App() {
         const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
         if (distanceSquared < (radius * radius)) {
           // 도서지형(섬)이 많아 Bounding Box가 과도하게 큰 해안/도서 지역들은 Pixel-perfect 검증 수행
-          const islandRegions = ['서울특별시', '인천광역시', '신안군', '완도군', '진도군', '제주시', '서귀포시', '부산광역시'];
+          const islandRegions = ['서울특별시', '인천광역시', '신안군', '완도군', '진도군', '제주시', '서귀포시'];
           if (islandRegions.some(name => box.name.includes(name))) {
             if (boardRef.current) {
               const rect = boardRef.current.getBoundingClientRect();
