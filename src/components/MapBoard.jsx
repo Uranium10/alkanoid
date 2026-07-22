@@ -141,23 +141,8 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       });
     }
 
-    // 매 판 랜덤 지터: 수동 튜닝값을 '기대값'으로 유지하되 판마다 -1/0/+1 변주를 줘
-    // '늘 같은 지역이 이기는' 결정론 문제를 완화하고 리플레이 다양성을 확보한다.
-    // 관광지 우대 의도가 뒤집히지 않도록 체력이 높은 구역일수록 흔들림 폭도 크게(±10%) 두고,
-    // 최소 체력 구역(HP 1~2)은 즉사를 막기 위해 하방(-)을 적용하지 않는다.
-    boxes.forEach(box => {
-      const baseHp = initialHpMap[box.id];
-      if (baseHp <= 0) return;
-
-      // 체력에 비례한 흔들림 폭(최소 ±1), 체력이 큰 제주 등은 더 크게 변주
-      const magnitude = Math.max(1, Math.round(baseHp * 0.1));
-      let jitter = Math.round((Math.random() * 2 - 1) * magnitude); // -magnitude ~ +magnitude
-
-      // 저체력 구역이 지터로 즉사(0 이하)하는 것을 방지: 하방을 눌러 최소 1을 보장
-      const jittered = Math.max(1, baseHp + jitter);
-      initialHpMap[box.id] = jittered;
-    });
-
+    // 랜덤 지터는 App에서 '다시 뽑기'마다 새로 적용하므로, 여기서는 지터 전
+    // 결정론적 기본(base) 체력맵을 그대로 넘긴다.
     onLoaded(initialHpMap, boxes);
   }, [onLoaded]);
 

@@ -11,6 +11,25 @@ const GAME_STATE = {
   FINISHED: 'FINISHED',
 };
 
+// 결정론적 기본 체력맵(base)에 매 판 랜덤 지터를 적용해 새 체력맵을 반환한다.
+// 수동 튜닝값을 '기대값'으로 유지하되 판마다 변주를 줘 '늘 같은 지역이 이기는'
+// 결정론 문제를 완화한다. 체력이 큰 구역일수록 흔들림 폭(±10%)도 크게 두고,
+// 저체력 구역이 지터로 즉사(0 이하)하지 않도록 최소 1을 보장한다.
+const rollHpMap = (baseMap) => {
+  const rolled = {};
+  Object.keys(baseMap).forEach(id => {
+    const baseHp = baseMap[id];
+    if (baseHp <= 0) {
+      rolled[id] = baseHp;
+      return;
+    }
+    const magnitude = Math.max(1, Math.round(baseHp * 0.1));
+    const jitter = Math.round((Math.random() * 2 - 1) * magnitude); // -magnitude ~ +magnitude
+    rolled[id] = Math.max(1, baseHp + jitter);
+  });
+  return rolled;
+};
+
 function App() {
   const [gameState, setGameState] = useState(GAME_STATE.READY);
   const [hpMap, setHpMap] = useState({});
@@ -58,13 +77,15 @@ function App() {
   
   const boxesRef = useRef([]);
   const hpMapRef = useRef({});
-  const initialHpMapRef = useRef({});
+  const baseHpMapRef = useRef({});
   const requestRef = useRef(null);
 
-  const handleMapLoaded = useCallback((initialHpMap, boxes) => {
-    initialHpMapRef.current = { ...initialHpMap };
-    hpMapRef.current = { ...initialHpMap };
-    setHpMap(initialHpMap);
+  const handleMapLoaded = useCallback((baseHpMap, boxes) => {
+    // 지터 전 결정론적 기본 맵을 보관하고, 첫 판 분포를 리롤해 적용한다.
+    baseHpMapRef.current = { ...baseHpMap };
+    const rolled = rollHpMap(baseHpMap);
+    hpMapRef.current = { ...rolled };
+    setHpMap(rolled);
     boxesRef.current = boxes;
   }, []);
 
@@ -429,8 +450,10 @@ function App() {
   };
 
   const resetGame = () => {
-    hpMapRef.current = { ...initialHpMapRef.current };
-    setHpMap({ ...initialHpMapRef.current });
+    // 다시 뽑기마다 기본 맵으로부터 분포를 새로 리롤한다.
+    const rolled = rollHpMap(baseHpMapRef.current);
+    hpMapRef.current = { ...rolled };
+    setHpMap(rolled);
     
     ballsRef.current.forEach(ball => {
       ball.vx = 0;
