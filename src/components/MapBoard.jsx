@@ -154,6 +154,10 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       if (box.name.includes('수원시') || box.name.includes('통영시')) {
         initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 3);
       }
+
+      if (box.name.includes('울릉군')) {
+        initialHpMap[box.id] = 6;
+      }
     });
 
     // 랜덤 지터는 App에서 '다시 뽑기'마다 새로 적용하므로, 여기서는 지터 전
