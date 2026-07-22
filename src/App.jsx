@@ -42,7 +42,7 @@ const rollHpMap = (baseMap) => {
 
   Object.keys(baseMap).forEach(id => {
     const baseHp = baseMap[id];
-    if (baseHp <= 6) {
+    if (baseHp <= 8) {
       unbuffedIds.push(id);
     }
     if (baseHp < 4 || baseHp > 18) {
@@ -61,7 +61,7 @@ const rollHpMap = (baseMap) => {
     if (unbuffedIds.length > 0) {
       const idx = Math.floor(Math.random() * unbuffedIds.length);
       const targetId = unbuffedIds.splice(idx, 1)[0];
-      nerfed[targetId] = Math.min(18, nerfed[targetId] + 16);
+      nerfed[targetId] = Math.min(18, nerfed[targetId] + 12 + rolled[targetId]);
     }
   }
 
