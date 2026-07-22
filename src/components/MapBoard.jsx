@@ -20,8 +20,8 @@ const MERGED_CODES = new Set([
 ]);
 
 const TOURIST_CITIES = [
-  "서울특별시", "부산광역시", "제주시", "서귀포시", "경주시", "전주시",
-  "여수시", "강릉시", "속초시", "춘천시", "안동시", "통영시", "인천광역시", "수원시"
+  "서울특별시", "부산광역시", "경주시", "전주시",
+  "여수시", "강릉시", "속초시", "춘천시", "안동시", "통영시", "인천광역시", "수원시", "순천시"
 ];
 
 const LEISURE_CITIES = [
@@ -41,7 +41,7 @@ const SURVIVAL_EXPERTS = [
 // 특색 있는 지역 명소나 관광지가 있는 내륙 도시들 (파란색 등급 상향)
 const LOCAL_ATTRACTION_CITIES = [
   "남원시", "부여군", "공주시", "문경시", "제천시",
-  "진주시", "합천군", "영주시", "곡성군", "구례군"
+  "진주시", "합천군", "영주시", "곡성군", "구례군", "포항시", "군산시"
 ];
 
 const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, width = 800, height = 750 }) => {
@@ -87,7 +87,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
 
       for (let tourist of TOURIST_CITIES) {
         if (box.name.includes(tourist)) {
-          initialHpMap[box.id] += 5;
+          initialHpMap[box.id] += 10;
           break;
         }
       }
@@ -114,9 +114,9 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
         }
       }
 
-      // 제주는 어나더 레벨로 설정 (+5 추가 부여)
+      // 제주는 어나더 레벨로 설정 (+15 추가 부여)
       if (box.name.includes('제주시') || box.name.includes('서귀포시')) {
-        initialHpMap[box.id] += 12;
+        initialHpMap[box.id] += 15;
       }
 
       // 너무 잘 살아남는 도시들은 페널티 대폭 적용 (-3)
@@ -141,10 +141,18 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       });
     }
 
-    // 서울/인천 체력 +4 상향 (모든 base 보정 이후 적용)
+    // 서울, 인천, 부산 체력 고정 및 추가 밸런스 패치 (모든 base 보정 이후 적용)
     boxes.forEach(box => {
-      if (box.name.includes('서울특별시') || box.name.includes('인천광역시')) {
-        initialHpMap[box.id] += 4;
+      if (box.name.includes('서울특별시')) {
+        initialHpMap[box.id] = 18;
+      } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
+        initialHpMap[box.id] = 20;
+      } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
+        initialHpMap[box.id] += 3;
+      }
+
+      if (box.name.includes('수원시')) {
+        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 1);
       }
     });
 
@@ -154,7 +162,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
   }, [onLoaded]);
 
   const getColorByHp = (hp) => {
-    if (hp >= 14) return 'url(#jeju-rainbow)';
+    if (hp >= 16) return 'url(#jeju-rainbow)';
     if (hp >= 9) return '#ffffff';
     if (hp >= 6) return '#a855f7';
     if (hp === 5) return '#3b82f6';
@@ -198,7 +206,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
             const hp = hpMap[id] || 0;
             const isActive = hp > 0;
             const isMerged = MERGED_CODES.has(id);
-            const isRainbow = hp >= 14;
+            const isRainbow = hp >= 16;
 
             let fillColor = getColorByHp(hp);
 

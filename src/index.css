@@ -376,6 +376,122 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Blink text for overlay message */
+.blink-text {
+  animation: blink 1.5s infinite;
+  color: #fbbf24;
+  margin-top: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+
+/* Overlay Message Styling */
+.overlay-message {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 50;
+  width: 100%;
+}
+
+.drag-start-text {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.arrows {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.arrow {
+  opacity: 0.2;
+  animation: arrow-blink 1.5s infinite ease-in-out;
+}
+
+@keyframes arrow-blink {
+  0% { opacity: 0.2; }
+  30% { opacity: 1; text-shadow: 0 0 8px rgba(255,255,255,0.8); }
+  100% { opacity: 0.2; }
+}
+
+.arr-outer { animation-delay: 0s; }
+.arr-mid { animation-delay: 0.2s; }
+.arr-inner { animation-delay: 0.4s; }
+
+/* Region Info in Game Over Modal */
+.region-info {
+  margin: 15px 0 25px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  text-align: center;
+}
+.region-desc {
+  font-size: 1.1rem;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.region-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.region-tag {
+  background: #3b82f6;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.2s, background 0.2s;
+}
+.region-tag:hover {
+  transform: scale(1.05);
+  background: #2563eb;
+}
+
+/* Floating +1 Text Animation */
+.floating-plus-one {
+  position: absolute;
+  color: #fcd34d;
+  font-size: 2.5rem;
+  font-weight: 900;
+  pointer-events: none;
+  z-index: 20;
+  text-shadow: 0 0 10px rgba(0,0,0,0.8), 0 0 20px #f59e0b;
+  animation: floatUpAndFade 1s ease-out forwards;
+}
+
+@keyframes floatUpAndFade {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -100%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -200%) scale(1); }
+}
+
 /* ===== 반응형: 모바일 (양쪽 패널 숨김 + 지도 화면 가득) ===== */
 @media (max-width: 900px) {
   body {
@@ -449,10 +565,12 @@ body {
     transform: translateY(1px);
   }
 
-  .overlay-message h3 {
-    font-size: 1rem;
-    padding: 0 1rem;
-    text-align: center;
+  .overlay-message {
+    bottom: 60px;
+  }
+
+  .drag-start-text {
+    font-size: 1.05rem;
   }
 
   .game-over-modal h2 {

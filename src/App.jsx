@@ -3,6 +3,17 @@ import sigunguData from './sigungu.json';
 import MapBoard from './components/MapBoard';
 import ParticleLayer from './components/ParticleLayer';
 import adjacencyData from './adjacency.json';
+import destinations from './destinations.json';
+
+const getRegionInfo = (name) => {
+  if (destinations[name]) {
+    return destinations[name];
+  }
+  return {
+    desc: `${name}만의 숨겨진 매력과 자연 속 힐링을 찾아 떠나는 특별한 여행을 즐겨보세요!`,
+    tags: [`#${name}여행`, `#${name}가볼만한곳`, `#국내여행`, `#힐링여행`]
+  };
+};
 import './index.css';
 
 const GAME_STATE = {
@@ -47,6 +58,8 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [hoveredRegion, setHoveredRegion] = useState(null);
   const [boardScale, setBoardScale] = useState(1);
+  const [floatingTexts, setFloatingTexts] = useState([]);
+  const [showDragText, setShowDragText] = useState(true);
 
   const boardWidth = 800;
   const boardHeight = 750;
@@ -64,14 +77,14 @@ function App() {
       active: true
     }))
   );
-  
+
   const boardRef = useRef(null);
   const ballDOMRefs = useRef([]);
   const arrowRef = useRef(null);
   const particleRef = useRef(null);
   const shakeTimeoutRef = useRef(null);
   const tooltipDOMRef = useRef(null);
-  
+
   const triggerShake = () => {
     setIsShaking(true);
     if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current);
@@ -79,15 +92,16 @@ function App() {
       setIsShaking(false);
     }, 200);
   };
-  
+
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const activePointerIdRef = useRef(null);
-  
+
   const boxesRef = useRef([]);
   const hpMapRef = useRef({});
   const baseHpMapRef = useRef({});
   const requestRef = useRef(null);
+  const destroyedCountRef = useRef(0);
 
   const handleMapLoaded = useCallback((baseHpMap, boxes) => {
     // 지터 전 결정론적 기본 맵을 보관하고, 첫 판 분포를 리롤해 적용한다.
@@ -99,7 +113,7 @@ function App() {
   }, []);
 
   const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
-  
+
   const checkHit = (cx, cy, radius) => {
     for (let box of boxesRef.current) {
       if (hpMapRef.current[box.id] > 0) {
@@ -110,7 +124,7 @@ function App() {
         const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
         if (distanceSquared < (radius * radius)) {
           // 도서지형(섬)이 많아 Bounding Box가 과도하게 큰 해안/도서 지역들은 Pixel-perfect 검증 수행
-          const islandRegions = ['인천광역시', '신안군', '완도군', '여수시', '통영시', '남해군', '진도군', '제주시', '서귀포시', '부산광역시'];
+          const islandRegions = ['서울특별시', '인천광역시', '신안군', '완도군', '여수시', '통영시', '남해군', '진도군', '제주시', '서귀포시', '부산광역시'];
           if (islandRegions.some(name => box.name.includes(name))) {
             if (boardRef.current) {
               const rect = boardRef.current.getBoundingClientRect();
@@ -150,7 +164,27 @@ function App() {
         explodedQueue.push(id);
         shakeTrigger = true;
         const box = boxesRef.current.find(b => b.id === id);
-        if (box) newDeadBoxes.push(`💥 ${box.name} 탈락!`);
+        if (box) {
+          newDeadBoxes.push(`💥 ${box.name} 탈락!`);
+
+          destroyedCountRef.current += 1;
+          if (destroyedCountRef.current % 10 === 0) {
+            const angle = Math.random() * Math.PI * 2;
+            ballsRef.current.push({
+              x: box.x + box.width / 2,
+              y: box.y + box.height / 2,
+              vx: initialSpeed * Math.cos(angle),
+              vy: initialSpeed * Math.sin(angle),
+              radius: ballRadius,
+              active: true
+            });
+            const textId = Date.now() + Math.random();
+            setFloatingTexts(prev => [...prev, { id: textId, x: box.x + box.width / 2, y: box.y + box.height / 2 }]);
+            setTimeout(() => {
+              setFloatingTexts(prev => prev.filter(ft => ft.id !== textId));
+            }, 1000);
+          }
+        }
       }
     };
 
@@ -195,7 +229,7 @@ function App() {
         if (!hitBoxId) hitBoxId = blockY.id;
         newY = y + vy;
       }
-      
+
       if (!hitX && !hitY) {
         const blockXY = checkHit(newX, newY, radius);
         if (blockXY) {
@@ -215,7 +249,7 @@ function App() {
       ball.y = newY;
       ball.vx = vx;
       ball.vy = vy;
-      
+
       if (ballDOMRefs.current[i]) {
         ballDOMRefs.current[i].style.transform = `translate(${newX - radius}px, ${newY - radius}px)`;
       }
@@ -227,7 +261,7 @@ function App() {
         const expId = explodedQueue[head++];
         const expBox = boxesRef.current.find(b => b.id === expId);
         if (!expBox) continue;
-        
+
         if (particleRef.current) {
           particleRef.current.spawnSparks(expBox.x + expBox.width / 2, expBox.y + expBox.height / 2);
         }
@@ -237,7 +271,7 @@ function App() {
           if (hpMapRef.current[targetId] > 0) {
             const wasAlive = hpMapRef.current[targetId] > 0;
             dealDamage(targetId);
-            
+
             if (wasAlive && hpMapRef.current[targetId] === 0 && particleRef.current) {
               const targetBox = boxesRef.current.find(b => b.id === targetId);
               if (targetBox) {
@@ -283,7 +317,7 @@ function App() {
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [gameState]); 
+  }, [gameState]);
 
   // 화면 크기에 맞춰 보드 스케일 계산 (물리 좌표계는 800x750 유지)
   useEffect(() => {
@@ -337,6 +371,7 @@ function App() {
 
   const cancelDrag = (x, y) => {
     isDraggingRef.current = false;
+    setShowDragText(true);
     if (arrowRef.current) arrowRef.current.style.display = 'none';
     ballsRef.current.forEach((ball, i) => {
       if (ballDOMRefs.current[i]) {
@@ -353,7 +388,7 @@ function App() {
     if (activePointerIdRef.current !== null) return;
 
     if (e.target.tagName.toLowerCase() === 'path' && e.target.classList.contains('sigungu-block')) {
-      return; 
+      return;
     }
 
     // 터치 드래그 중 스크롤/새로고침 제스처 방지
@@ -365,6 +400,7 @@ function App() {
     const startY = (e.clientY - rect.top) / startScale;
 
     isDraggingRef.current = true;
+    setShowDragText(false);
     activePointerIdRef.current = e.pointerId;
     dragStartRef.current = { x: startX, y: startY };
 
@@ -390,7 +426,7 @@ function App() {
       const dy = dragStartRef.current.y - my;
       const distance = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
-      
+
       if (arrowRef.current) {
         if (distance > 20) {
           arrowRef.current.style.display = 'block';
@@ -437,12 +473,18 @@ function App() {
         if (arrowRef.current) arrowRef.current.style.display = 'none';
 
         const baseAngle = Math.atan2(dy, dx);
-        
+
         ballsRef.current.forEach((ball, i) => {
-          const spread = (Math.PI / 12); 
-          const offset = -spread + (spread * 2 * (i / (numBalls - 1))); 
-          const angle = baseAngle + offset;
-          
+          let angle;
+          if (i === 0) {
+            // 첫 번째 공은 화살표 방향을 정확히 따라감
+            angle = baseAngle;
+          } else {
+            // 나머지 공들은 +-75도 범위 내에서 랜덤하게 퍼짐
+            const randomJitter = (Math.random() - 0.5) * (150 * Math.PI / 180);
+            angle = baseAngle + randomJitter;
+          }
+
           ball.vx = initialSpeed * Math.cos(angle);
           ball.vy = initialSpeed * Math.sin(angle);
         });
@@ -463,17 +505,24 @@ function App() {
     const rolled = rollHpMap(baseHpMapRef.current);
     hpMapRef.current = { ...rolled };
     setHpMap(rolled);
-    
-    ballsRef.current.forEach(ball => {
-      ball.vx = 0;
-      ball.vy = 0;
-    });
+
+    destroyedCountRef.current = 0;
+    ballsRef.current = Array.from({ length: numBalls }).map(() => ({
+      x: boardWidth / 2,
+      y: boardHeight - 30,
+      vx: 0,
+      vy: 0,
+      radius: ballRadius,
+      active: true
+    }));
 
     isDraggingRef.current = false;
+    setShowDragText(true);
     if (arrowRef.current) arrowRef.current.style.display = 'none';
 
     setGameState(GAME_STATE.READY);
     setLogs([]);
+    setFloatingTexts([]);
   };
 
   const activeIds = Object.keys(hpMap).filter(id => hpMap[id] > 0);
@@ -486,11 +535,11 @@ function App() {
   return (
     <div className="game-container">
       <div className="game-header">
-        <h1 className="title">대한민국 알카노이드</h1>
-        <p className="subtitle">어디로 떠날지 10개의 구슬에게 맡겨보세요!</p>
+        <h1 className="title">국내 여행 알카노이드</h1>
+        <p className="subtitle">어디로 떠날지 구슬에게 맡겨보세요!</p>
         <button className="mobile-reset-btn" onClick={resetGame}>다시 뽑기</button>
       </div>
-      
+
       <div className="game-layout">
         <div className="left-panel">
           <h3>탈락 로그</h3>
@@ -508,64 +557,113 @@ function App() {
             height: boardHeight * boardScale,
           }}
         >
-        <div 
-          className="board-wrapper"
-          ref={boardRef}
-          style={{
-            width: boardWidth,
-            height: boardHeight,
-            transform: `scale(${boardScale})`,
-            transformOrigin: 'top left',
-          }}
-          onPointerMove={handlePointerMove}
-          onPointerDown={handlePointerDown}
-        >
-          <MapBoard 
-            sigunguData={sigunguData} 
-            onLoaded={handleMapLoaded}
-            hpMap={hpMap}
-            onRegionHover={(id) => {
-              const box = boxesRef.current.find(b => b.id === id);
-              if (box) setHoveredRegion({ id, name: box.name });
+          <div
+            className="board-wrapper"
+            ref={boardRef}
+            style={{
+              width: boardWidth,
+              height: boardHeight,
+              transform: `scale(${boardScale})`,
+              transformOrigin: 'top left',
             }}
-            onRegionLeave={() => setHoveredRegion(null)}
-          />
-          <ParticleLayer ref={particleRef} width={boardWidth} height={boardHeight} ballsRef={ballsRef} />
-          
-          {ballsRef.current.map((ball, i) => (
-            <div 
-              key={i}
-              ref={el => ballDOMRefs.current[i] = el}
-              className="ball"
-              style={{
-                width: ball.radius * 2,
-                height: ball.radius * 2,
-                opacity: gameState === GAME_STATE.READY ? 0 : 1, 
-                display: gameState === GAME_STATE.READY ? 'block' : (ball.active ? 'block' : 'none')
+            onPointerMove={handlePointerMove}
+            onPointerDown={handlePointerDown}
+          >
+            <MapBoard
+              sigunguData={sigunguData}
+              onLoaded={handleMapLoaded}
+              hpMap={hpMap}
+              onRegionHover={(id) => {
+                const box = boxesRef.current.find(b => b.id === id);
+                if (box) setHoveredRegion({ id, name: box.name });
               }}
+              onRegionLeave={() => setHoveredRegion(null)}
             />
-          ))}
+            <ParticleLayer ref={particleRef} width={boardWidth} height={boardHeight} ballsRef={ballsRef} />
 
-          {gameState === GAME_STATE.READY && (
-            <div ref={arrowRef} className="slingshot-arrow"></div>
-          )}
+            {ballsRef.current.map((ball, i) => (
+              <div
+                key={i}
+                ref={el => ballDOMRefs.current[i] = el}
+                className="ball"
+                style={{
+                  width: ball.radius * 2,
+                  height: ball.radius * 2,
+                  opacity: gameState === GAME_STATE.READY ? 0 : 1,
+                  display: gameState === GAME_STATE.READY ? 'block' : (ball.active ? 'block' : 'none')
+                }}
+              />
+            ))}
 
-          {gameState === GAME_STATE.READY && (
-            <div className="overlay-message">
-              <h3>원하는 해상에서 드래그하여 발사하세요</h3>
-            </div>
-          )}
+            {gameState === GAME_STATE.READY && (
+              <div ref={arrowRef} className="slingshot-arrow"></div>
+            )}
 
-          {gameState === GAME_STATE.FINISHED && (
-            <div className="game-over-modal">
-              <h2>🎉 축하합니다! 🎉</h2>
-              <p>이번 여행지는 <span>{lastSigunguName}</span> 입니다!</p>
-              <button onClick={resetGame} className="reset-btn">다시 추천받기</button>
-            </div>
-          )}
+            {gameState === GAME_STATE.READY && showDragText && (
+              <div className="overlay-message">
+                <h2 className="drag-start-text">
+                  <span className="arrows">
+                    <span className="arrow arr-outer">&gt;</span>
+                    <span className="arrow arr-mid">&gt;</span>
+                    <span className="arrow arr-inner">&gt;</span>
+                  </span>
+                  <span className="text-body">바다를 드래그하여 시작</span>
+                  <span className="arrows">
+                    <span className="arrow arr-inner">&lt;</span>
+                    <span className="arrow arr-mid">&lt;</span>
+                    <span className="arrow arr-outer">&lt;</span>
+                  </span>
+                </h2>
+              </div>
+            )}
+
+            {gameState === GAME_STATE.FINISHED && (
+              (() => {
+                const info = getRegionInfo(lastSigunguName);
+                return (
+                  <div className="game-over-modal">
+                    <h2>🎉 축하합니다! 🎉</h2>
+                    <p>이번 여행지는 <span>{lastSigunguName}</span> 입니다!</p>
+                    <div className="region-info">
+                      <p className="region-desc">{info.desc}</p>
+                      <div className="region-tags">
+                        {info.tags.map((tag, idx) => {
+                          const query = encodeURIComponent(`${lastSigunguName} ${tag.replace('#', '')}`);
+                          return (
+                            <a
+                              key={idx}
+                              href={`https://www.google.com/search?q=${query}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="region-tag"
+                            >
+                              {tag}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <button onClick={resetGame} className="reset-btn">다시 추천받기</button>
+                  </div>
+                );
+              })()
+            )}
+
+            {floatingTexts.map(ft => (
+              <div
+                key={ft.id}
+                className="floating-plus-one"
+                style={{
+                  left: ft.x,
+                  top: ft.y
+                }}
+              >
+                +1
+              </div>
+            ))}
+          </div>
         </div>
-        </div>
-        
+
         <div className="side-panel">
           <div className="stats">
             <span className="stats-title">생존 구역 ({activeCount})</span>
@@ -578,7 +676,7 @@ function App() {
           <button className="side-reset-btn" onClick={resetGame}>다시 뽑기</button>
         </div>
       </div>
-      
+
       {hoveredRegion && hpMap[hoveredRegion.id] > 0 && (
         <div className="region-tooltip" ref={tooltipDOMRef}>
           <strong>{hoveredRegion.name}</strong>
