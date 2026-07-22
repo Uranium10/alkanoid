@@ -72,6 +72,9 @@ body {
   border-radius: 16px;
   box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
   cursor: crosshair; /* 십자선 커서 */
+  touch-action: none; /* 터치 드래그 시 스크롤/새로고침 제스처 방지 */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .left-panel {
