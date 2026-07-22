@@ -18,6 +18,7 @@ function App() {
   const [isShaking, setIsShaking] = useState(false);
   const [logs, setLogs] = useState([]);
   const [hoveredRegion, setHoveredRegion] = useState(null);
+  const [boardScale, setBoardScale] = useState(1);
 
   const boardWidth = 800;
   const boardHeight = 750;
@@ -251,6 +252,34 @@ function App() {
     };
   }, [gameState]); 
 
+  // 화면 크기에 맞춰 보드 스케일 계산 (물리 좌표계는 800x750 유지)
+  useEffect(() => {
+    const computeScale = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isMobile = vw <= 900;
+
+      if (!isMobile) {
+        setBoardScale(1);
+        return;
+      }
+
+      // 모바일: 좌우 여백을 제외한 가용 폭/높이에 맞춰 축소 (확대는 하지 않음)
+      const availableWidth = vw - 16; // 좌우 8px 여백
+      const availableHeight = vh - 96; // 헤더/여백 공간
+      const scale = Math.min(availableWidth / boardWidth, availableHeight / boardHeight, 1);
+      setBoardScale(scale);
+    };
+
+    computeScale();
+    window.addEventListener('resize', computeScale);
+    window.addEventListener('orientationchange', computeScale);
+    return () => {
+      window.removeEventListener('resize', computeScale);
+      window.removeEventListener('orientationchange', computeScale);
+    };
+  }, []);
+
   const handlePointerMove = (e) => {
     if (tooltipDOMRef.current) {
       tooltipDOMRef.current.style.left = `${e.clientX + 15}px`;
@@ -260,8 +289,9 @@ function App() {
     if (gameState !== GAME_STATE.READY || isDraggingRef.current) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scale = rect.width / boardWidth;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
 
     ballsRef.current.forEach((ball, i) => {
       if (ballDOMRefs.current[i]) {
@@ -297,8 +327,9 @@ function App() {
     if (e.cancelable) e.preventDefault();
 
     const rect = boardRef.current.getBoundingClientRect();
-    const startX = e.clientX - rect.left;
-    const startY = e.clientY - rect.top;
+    const startScale = rect.width / boardWidth;
+    const startX = (e.clientX - rect.left) / startScale;
+    const startY = (e.clientY - rect.top) / startScale;
 
     isDraggingRef.current = true;
     activePointerIdRef.current = e.pointerId;
@@ -318,8 +349,9 @@ function App() {
       if (!boardRef.current) return;
       if (moveEvent.cancelable) moveEvent.preventDefault();
       const boardRect = boardRef.current.getBoundingClientRect();
-      const mx = moveEvent.clientX - boardRect.left;
-      const my = moveEvent.clientY - boardRect.top;
+      const moveScale = boardRect.width / boardWidth;
+      const mx = (moveEvent.clientX - boardRect.left) / moveScale;
+      const my = (moveEvent.clientY - boardRect.top) / moveScale;
 
       const dx = dragStartRef.current.x - mx;
       const dy = dragStartRef.current.y - my;
@@ -359,8 +391,9 @@ function App() {
       }
 
       const boardRect = boardRef.current.getBoundingClientRect();
-      const finalX = upEvent.clientX - boardRect.left;
-      const finalY = upEvent.clientY - boardRect.top;
+      const upScale = boardRect.width / boardWidth;
+      const finalX = (upEvent.clientX - boardRect.left) / upScale;
+      const finalY = (upEvent.clientY - boardRect.top) / upScale;
 
       const dx = dragStartRef.current.x - finalX;
       const dy = dragStartRef.current.y - finalY;
@@ -420,6 +453,7 @@ function App() {
       <div className="game-header">
         <h1 className="title">대한민국 알카노이드</h1>
         <p className="subtitle">어디로 떠날지 10개의 구슬에게 맡겨보세요!</p>
+        <button className="mobile-reset-btn" onClick={resetGame}>다시 뽑기</button>
       </div>
       
       <div className="game-layout">
@@ -432,10 +466,22 @@ function App() {
           </div>
         </div>
 
+        <div
+          className="board-scaler"
+          style={{
+            width: boardWidth * boardScale,
+            height: boardHeight * boardScale,
+          }}
+        >
         <div 
           className={`board-wrapper ${isShaking ? 'shake' : ''}`}
           ref={boardRef}
-          style={{ width: boardWidth, height: boardHeight }}
+          style={{
+            width: boardWidth,
+            height: boardHeight,
+            transform: `scale(${boardScale})`,
+            transformOrigin: 'top left',
+          }}
           onPointerMove={handlePointerMove}
           onPointerDown={handlePointerDown}
         >
@@ -482,6 +528,7 @@ function App() {
               <button onClick={resetGame} className="reset-btn">다시 추천받기</button>
             </div>
           )}
+        </div>
         </div>
         
         <div className="side-panel">

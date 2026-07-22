@@ -66,6 +66,16 @@ body {
   align-items: stretch;
 }
 
+.board-scaler {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* 모바일 헤더 리셋 버튼은 데스크톱에서 숨김 */
+.mobile-reset-btn {
+  display: none;
+}
+
 .board-wrapper {
   position: relative;
   overflow: hidden;
@@ -364,4 +374,98 @@ body {
 @keyframes tooltipFadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 반응형: 모바일 (양쪽 패널 숨김 + 지도 화면 가득) ===== */
+@media (max-width: 900px) {
+  body {
+    display: block;
+    min-height: 100dvh;
+  }
+
+  #root {
+    display: block;
+    min-height: 100dvh;
+  }
+
+  .game-container {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    min-height: 100dvh;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .game-header {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    padding: 0.25rem 0 0.5rem;
+    box-sizing: border-box;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+  }
+
+  /* 좌우 패널(탈락 로그 / 생존 구역) 모바일에서 숨김 */
+  .left-panel,
+  .side-panel {
+    display: none;
+  }
+
+  .game-layout {
+    gap: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 헤더에 표시되는 컴팩트 리셋 버튼 */
+  .mobile-reset-btn {
+    display: inline-block;
+    margin-top: 0.5rem;
+    background: linear-gradient(to bottom, #f43f5e, #e11d48);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-radius: 9999px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(225, 29, 72, 0.4);
+  }
+
+  .mobile-reset-btn:active {
+    transform: translateY(1px);
+  }
+
+  .overlay-message h3 {
+    font-size: 1rem;
+    padding: 0 1rem;
+    text-align: center;
+  }
+
+  .game-over-modal h2 {
+    font-size: 2rem;
+  }
+
+  .game-over-modal p {
+    font-size: 1.15rem;
+    text-align: center;
+    padding: 0 1rem;
+  }
+
+  .game-over-modal p span {
+    font-size: 1.5rem;
+  }
 }
