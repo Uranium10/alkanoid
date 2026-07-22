@@ -116,7 +116,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
 
       // 제주는 어나더 레벨로 설정 (+15 추가 부여)
       if (box.name.includes('제주시') || box.name.includes('서귀포시')) {
-        initialHpMap[box.id] += 15;
+        initialHpMap[box.id] += 17;
       }
 
       // 너무 잘 살아남는 도시들은 페널티 대폭 적용 (-3)
