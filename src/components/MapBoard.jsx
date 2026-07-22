@@ -151,8 +151,8 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
         initialHpMap[box.id] += 3;
       }
 
-      if (box.name.includes('수원시')) {
-        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 2);
+      if (box.name.includes('수원시') || box.name.includes('통영시')) {
+        initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 3);
       }
     });
 
