@@ -49,7 +49,7 @@ const KANGWON_SPECIAL = [
   "평창군", "홍천군", "양평군", "정선군", "춘천시", "인제군", "화천군", "강릉시"
 ];
 
-const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, width = 800, height = 750 }) => {
+const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, onRegionClick, width = 800, height = 750 }) => {
   const svgRef = useRef(null);
 
   const projection = useMemo(() => {
@@ -267,6 +267,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
                 d={pathGenerator(feature)}
                 onMouseEnter={() => onRegionHover && onRegionHover(id)}
                 onMouseLeave={() => onRegionLeave && onRegionLeave()}
+                onClick={() => onRegionClick && onRegionClick(id)}
                 style={{
                   fill: fillColor,
                   stroke: isActive ? (isRainbow ? '#ef4444' : (isMerged ? fillColor : '#1e293b')) : 'transparent',

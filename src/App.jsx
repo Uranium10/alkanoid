@@ -614,6 +614,15 @@ function App() {
                 if (box) setHoveredRegion({ id, name: box.name });
               }}
               onRegionLeave={() => setHoveredRegion(null)}
+              onRegionClick={(id) => {
+                if (gameState === GAME_STATE.PLAYING || gameState === GAME_STATE.READY) {
+                  const box = boxesRef.current.find(b => b.id === id);
+                  if (box && hpMapRef.current[id] > 0) {
+                    setLastSigunguName(box.name);
+                    setGameState(GAME_STATE.FINISHED);
+                  }
+                }
+              }}
             />
             <ParticleLayer ref={particleRef} width={boardWidth} height={boardHeight} ballsRef={ballsRef} />
 
