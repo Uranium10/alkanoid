@@ -53,6 +53,7 @@ function App() {
   
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
+  const activePointerIdRef = useRef(null);
   
   const boxesRef = useRef([]);
   const hpMapRef = useRef({});
@@ -250,7 +251,7 @@ function App() {
     };
   }, [gameState]); 
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     if (tooltipDOMRef.current) {
       tooltipDOMRef.current.style.left = `${e.clientX + 15}px`;
       tooltipDOMRef.current.style.top = `${e.clientY + 15}px`;
@@ -282,18 +283,25 @@ function App() {
     });
   };
 
-  const handleMouseDown = (e) => {
+  const handlePointerDown = (e) => {
     if (gameState !== GAME_STATE.READY) return;
-    
+
+    // 이미 다른 포인터(멀티터치)로 드래그 중이면 무시
+    if (activePointerIdRef.current !== null) return;
+
     if (e.target.tagName.toLowerCase() === 'path' && e.target.classList.contains('sigungu-block')) {
       return; 
     }
+
+    // 터치 드래그 중 스크롤/새로고침 제스처 방지
+    if (e.cancelable) e.preventDefault();
 
     const rect = boardRef.current.getBoundingClientRect();
     const startX = e.clientX - rect.left;
     const startY = e.clientY - rect.top;
 
     isDraggingRef.current = true;
+    activePointerIdRef.current = e.pointerId;
     dragStartRef.current = { x: startX, y: startY };
 
     ballsRef.current.forEach((ball, i) => {
@@ -305,8 +313,10 @@ function App() {
       }
     });
 
-    const onGlobalMouseMove = (moveEvent) => {
+    const onGlobalPointerMove = (moveEvent) => {
+      if (moveEvent.pointerId !== activePointerIdRef.current) return;
       if (!boardRef.current) return;
+      if (moveEvent.cancelable) moveEvent.preventDefault();
       const boardRect = boardRef.current.getBoundingClientRect();
       const mx = moveEvent.clientX - boardRect.left;
       const my = moveEvent.clientY - boardRect.top;
@@ -327,14 +337,24 @@ function App() {
       }
     };
 
-    const onGlobalMouseUp = (upEvent) => {
-      window.removeEventListener('mousemove', onGlobalMouseMove);
-      window.removeEventListener('mouseup', onGlobalMouseUp);
+    const onGlobalPointerUp = (upEvent) => {
+      if (upEvent.pointerId !== activePointerIdRef.current) return;
+
+      window.removeEventListener('pointermove', onGlobalPointerMove);
+      window.removeEventListener('pointerup', onGlobalPointerUp);
+      window.removeEventListener('pointercancel', onGlobalPointerUp);
+      activePointerIdRef.current = null;
 
       if (!isDraggingRef.current) return;
 
       if (!boardRef.current) {
         isDraggingRef.current = false;
+        return;
+      }
+
+      // pointercancel 등으로 위치 정보가 없을 경우 발사 취소
+      if (upEvent.type === 'pointercancel') {
+        cancelDrag(dragStartRef.current.x, dragStartRef.current.y);
         return;
       }
 
@@ -367,8 +387,9 @@ function App() {
       }
     };
 
-    window.addEventListener('mousemove', onGlobalMouseMove);
-    window.addEventListener('mouseup', onGlobalMouseUp);
+    window.addEventListener('pointermove', onGlobalPointerMove, { passive: false });
+    window.addEventListener('pointerup', onGlobalPointerUp);
+    window.addEventListener('pointercancel', onGlobalPointerUp);
   };
 
   const resetGame = () => {
@@ -415,8 +436,8 @@ function App() {
           className={`board-wrapper ${isShaking ? 'shake' : ''}`}
           ref={boardRef}
           style={{ width: boardWidth, height: boardHeight }}
-          onMouseMove={handleMouseMove}
-          onMouseDown={handleMouseDown}
+          onPointerMove={handlePointerMove}
+          onPointerDown={handlePointerDown}
         >
           <MapBoard 
             sigunguData={sigunguData} 
