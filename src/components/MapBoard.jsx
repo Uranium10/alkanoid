@@ -141,6 +141,13 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       });
     }
 
+    // 서울/인천 체력 +4 상향 (모든 base 보정 이후 적용)
+    boxes.forEach(box => {
+      if (box.name.includes('서울특별시') || box.name.includes('인천광역시')) {
+        initialHpMap[box.id] += 4;
+      }
+    });
+
     // 랜덤 지터는 App에서 '다시 뽑기'마다 새로 적용하므로, 여기서는 지터 전
     // 결정론적 기본(base) 체력맵을 그대로 넘긴다.
     onLoaded(initialHpMap, boxes);
