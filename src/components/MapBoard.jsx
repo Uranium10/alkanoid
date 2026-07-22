@@ -2,6 +2,14 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import * as d3 from 'd3-geo';
 import sigunguData from '../sigungu.json';
 
+// Box-Muller 변환으로 표준정규분포(평균 0, 표준편차 1) 난수 생성
+const gaussianRandom = () => {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random(); // 0 방지 (log(0) 예외)
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+};
+
 const COASTAL_AND_BORDER_CITIES = [
   "강화군", "옹진군", "김포시", "파주시", "연천군", "철원군", "화천군", "양구군", "인제군",
   "고성군", "속초시", "양양군", "강릉시", "동해시", "삼척시", "울진군", "영덕군", "포항시",
@@ -141,20 +149,17 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       });
     }
 
-    // 매 판 랜덤 지터: 수동 튜닝값을 '기대값'으로 유지하되 판마다 -1/0/+1 변주를 줘
-    // '늘 같은 지역이 이기는' 결정론 문제를 완화하고 리플레이 다양성을 확보한다.
-    // 관광지 우대 의도가 뒤집히지 않도록 체력이 높은 구역일수록 흔들림 폭도 크게(±10%) 두고,
-    // 최소 체력 구역(HP 1~2)은 즉사를 막기 위해 하방(-)을 적용하지 않는다.
+    // 중간 티어(녹색 HP 4 ~ 파란색 HP 5) 한정 가우시안 변주:
+    // 강원도처럼 면적·접점 위상으로 단단하게 튜닝한 상위 티어(보라/흰색/제주)와
+    // 의도적으로 약하게 눌러둔 위성도시(HP 1~3)는 건드리지 않아 밸런스 의도를 보존한다.
+    // 중립 지대인 HP 4~5 구역에만 소폭(σ≈1) 변주를 줘 리플레이 다양성을 확보하되,
+    // 결과를 HP 3~6 밴드로 clamp해 상·하위 티어(색상/의도 체계)로 새지 않게 한다.
     boxes.forEach(box => {
       const baseHp = initialHpMap[box.id];
-      if (baseHp <= 0) return;
+      if (baseHp !== 4 && baseHp !== 5) return;
 
-      // 체력에 비례한 흔들림 폭(최소 ±1), 체력이 큰 제주 등은 더 크게 변주
-      const magnitude = Math.max(1, Math.round(baseHp * 0.1));
-      let jitter = Math.round((Math.random() * 2 - 1) * magnitude); // -magnitude ~ +magnitude
-
-      // 저체력 구역이 지터로 즉사(0 이하)하는 것을 방지: 하방을 눌러 최소 1을 보장
-      const jittered = Math.max(1, baseHp + jitter);
+      const jitter = Math.round(gaussianRandom() * 1); // σ≈1, 대부분 -2 ~ +2
+      const jittered = Math.min(6, Math.max(3, baseHp + jitter));
       initialHpMap[box.id] = jittered;
     });
 
