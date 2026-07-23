@@ -165,7 +165,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       if (box.name.includes('서울특별시')) {
         initialHpMap[box.id] = 23;
       } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
-        initialHpMap[box.id] = 27;
+        initialHpMap[box.id] = 28;
       } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
         initialHpMap[box.id] += 13;
       }
@@ -179,9 +179,11 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
         || box.name.includes('거제시'))
         initialHpMap[box.id] -= 1;
       if (box.name.includes('청주시')
-        || box.name.includes('오산시')
-        || box.name.includes('단양군')) {
+        || box.name.includes('오산시')) {
         initialHpMap[box.id] -= 2;
+      }
+      if (box.name.includes('단양군')) {
+        initialHpMap[box.id] -= 3;
       }
       if (box.name.includes('춘천시')) {
         initialHpMap[box.id] = 22;
@@ -190,7 +192,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
         initialHpMap[box.id] += 2;
       }
       if (box.name.includes('여수시')) {
-        initialHpMap[box.id] += 3;
+        initialHpMap[box.id] += 5;
       }
       if (box.name.includes('전주시')) {
         initialHpMap[box.id] = 11;
