@@ -135,7 +135,7 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
 
       // 제주는 어나더 레벨로 설정 (+15 추가 부여)
       if (box.name.includes('제주시') || box.name.includes('서귀포시')) {
-        initialHpMap[box.id] += 23;
+        initialHpMap[box.id] += 22;
       }
 
       // 너무 잘 살아남는 도시들은 페널티 대폭 적용 (-3)
@@ -163,9 +163,9 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
     // 서울, 인천, 부산 체력 고정 및 추가 밸런스 패치 (모든 base 보정 이후 적용)
     boxes.forEach(box => {
       if (box.name.includes('서울특별시')) {
-        initialHpMap[box.id] = 24;
+        initialHpMap[box.id] = 23;
       } else if (box.name.includes('인천광역시') || box.name.includes('부산광역시')) {
-        initialHpMap[box.id] = 26;
+        initialHpMap[box.id] = 27;
       } else if (box.name.includes('대구광역시') || box.name.includes('대전광역시') || box.name.includes('광주광역시') || box.name.includes('울산광역시')) {
         initialHpMap[box.id] += 13;
       }
@@ -174,10 +174,13 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
         initialHpMap[box.id] = Math.max(1, initialHpMap[box.id] - 10);
       }
       if (box.name.includes('광양시')
-        || box.name.includes('단양군')
-        || box.name.includes('시흥시'))
+        || box.name.includes('시흥시')
+        || box.name.includes('남해군')
+        || box.name.includes('거제시'))
         initialHpMap[box.id] -= 1;
-      if (box.name.includes('청주시') || box.name.includes('오산시')) {
+      if (box.name.includes('청주시')
+        || box.name.includes('오산시')
+        || box.name.includes('단양군')) {
         initialHpMap[box.id] -= 2;
       }
       if (box.name.includes('춘천시')) {
@@ -185,6 +188,9 @@ const MapBoard = ({ sigunguData, onLoaded, hpMap, onRegionHover, onRegionLeave, 
       }
       if (box.name.includes('고양시')) {
         initialHpMap[box.id] += 2;
+      }
+      if (box.name.includes('여수시')) {
+        initialHpMap[box.id] += 3;
       }
       if (box.name.includes('전주시')) {
         initialHpMap[box.id] = 11;
